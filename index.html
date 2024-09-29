@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>WYSIWYG Page Builder with Full Functionality</title>
+    <!-- Подключение Quill и сторонних плагинов -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill-emoji/dist/quill-emoji.css">
+    <style>
+/* Dark theme CSS */
+body {
+    background-color: #1e1e1e;
+    color: #f1f1f1;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 1000px;
+    margin: auto;
+}
+
+h1 {
+    color: #ffffff;
+}
+
+#editor-container {
+    height: 400px;
+    background-color: #2d2d2d;
+    color: #f1f1f1;
+    border: 1px solid #444;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+button {
+    background-color: #444;
+    color: #f1f1f1;
+    border: none;
+    margin: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #555;
+}
+
+button:active {
+    background-color: #666;
+}
+
+.quill-toolbar {
+    background-color: #333;
+    border: 1px solid #444;
+}
+
+.ql-toolbar .ql-picker {
+    color: #f1f1f1;
+}
+
+.ql-toolbar .ql-picker-label {
+    color: #f1f1f1;
+}
+
+.ql-toolbar .ql-picker-options {
+    background-color: #333;
+    color: #f1f1f1;
+}
+
+.ql-toolbar button {
+    color: #f1f1f1;
+}
+
+.ql-toolbar button:hover {
+    background-color: #444;
+}
+
+.ql-toolbar button.ql-active {
+    background-color: #555;
+}
+
+.ql-snow .ql-tooltip {
+    background-color: #333;
+    color: #f1f1f1;
+    border: 1px solid #444;
+}
+
+.ql-snow .ql-tooltip a {
+    color: #1e90ff;
+}
+
+.ql-snow .ql-tooltip a:hover {
+    color: #66a3ff;
+}
+
+    </style>
+</head>
+<body>
+
+    <h1>WYSIWYG Page Builder with Full Functionality</h1>
+
+    <!-- Контейнер для редактора -->
+    <div id="editor-container"></div>
+
+    <button onclick="saveContent()">Save Content</button>
+    <button onclick="loadContent()">Load Content</button>
+    <button onclick="exportContent()">Export as JSON</button>
+    <button onclick="exportHTML()">Export as HTML</button>
+
+    <!-- Подключение скриптов Quill и плагинов -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill-emoji/dist/quill-emoji.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Инициализация Quill с основными функциями
+            const quill = new Quill('#editor-container', {
+                theme: 'snow',
+                modules: {
+                    toolbar: [
+                        [{ 'font': [] }],
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],
+                        [{ 'align': [] }],
+                        [{ 'size': ['small', false, 'large', 'huge'] }],
+                        ['bold', 'italic', 'underline', 'strike'],
+                        [{ 'color': [] }, { 'background': [] }],
+                        ['link', 'image', 'video', 'code-block'],
+                        ['blockquote', 'emoji'],
+                        ['clean'],  // кнопка для удаления форматирования
+                        ['direction']  // направление текста
+                    ],
+                    'emoji-toolbar': true,
+                    'emoji-textarea': false,
+                    'emoji-shortname': true,
+                    imageResize: {
+                        modules: ['Resize', 'DisplaySize', 'Toolbar']
+                    }
+                },
+                placeholder: '    Compose your page here...'
+            });
+
+            // Функция сохранения содержимого в localStorage
+            window.saveContent = function() {
+                const content = quill.getContents();
+                localStorage.setItem('quillContent', JSON.stringify(content));
+                alert('Content saved!');
+            };
+
+            // Функция загрузки содержимого из localStorage
+            window.loadContent = function() {
+                const savedContent = localStorage.getItem('quillContent');
+                if (savedContent) {
+                    quill.setContents(JSON.parse(savedContent));
+                    alert('Content loaded!');
+                } else {
+                    alert('No saved content found.');
+                }
+            };
+
+            // Функция экспорта содержимого редактора в JSON файл
+            window.exportContent = function() {
+                const content = quill.getContents();
+                const dataStr = JSON.stringify(content);
+                const blob = new Blob([dataStr], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", url);
+                downloadAnchorNode.setAttribute("download", "content.json");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+
+                URL.revokeObjectURL(url); // очистка временного URL после скачивания
+            };
+
+            // Функция экспорта содержимого редактора в HTML файл
+            window.exportHTML = function() {
+                const html = quill.root.innerHTML;
+                const blob = new Blob([html], { type: "text/html" });
+                const url = URL.createObjectURL(blob);
+
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", url);
+                downloadAnchorNode.setAttribute("download", "content.html");
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+
+                URL.revokeObjectURL(url); // очистка временного URL после скачивания
+            };
+
+            // Автосохранение каждые 60 секунд
+            setInterval(() => {
+                const content = quill.getContents();
+                localStorage.setItem('quillContent', JSON.stringify(content));
+                console.log('Auto-saved!');
+            }, 20000);  // 1 минута
+        });
+    </script>
+
+</body>
+</html>
